@@ -10,6 +10,8 @@ from models.reg_user import RegisterUserModel
 from models.user import User
 from router import routes
 
+from .wallet import *
+
 
 @routes.post('/register')
 async def post_register(request: aiohttp.web_request.Request, user_info: RegisterUserModel) -> User:
