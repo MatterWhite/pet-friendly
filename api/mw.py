@@ -17,7 +17,9 @@ import psycopg2
 import psycopg2.errors
 from aiohttp import web
 
+import auth
 import type_unpack
+from auth import NotAuthorizedError
 
 log = logging.getLogger()
 
@@ -84,6 +86,16 @@ async def middleware(request: aiohttp.web_request.Request, handler):
             if len(type_errors) > 0:
                 raise ValueError(type_errors + '\n' + str(kvargs))
 
+            auth_strict = True
+            user_type = handler_spec.annotations.get('user')
+
+            user, err = type_unpack.unpack_from_annotation(request, user_type)
+
+            if 'user' in handler_spec.args:
+                real_kvargs['user'] = user
+                if len(err) > 0:
+                    raise NotAuthorizedError()
+
             resp = await handler(request, **real_kvargs)
         except Exception as e:
             log.error(e)
@@ -95,6 +107,9 @@ async def middleware(request: aiohttp.web_request.Request, handler):
     except ujson.JSONDecodeError as je:
         error = str(je)
         status = 400
+    except NotAuthorizedError:
+        error = 'not authorized'
+        status = 403
     except TypeError as te:
         if 'required positional argument' in str(te):
             error = f'Missing arguments: {str(te).split(": ")[-1]}'
