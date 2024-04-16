@@ -8,6 +8,10 @@ from aiohttp import web
 
 from router import routes
 
+from general import *
+
+from issuer import *
+
 if __name__ == '__main__':
     app = web.Application()
     api = web.Application(middlewares=[middleware])
