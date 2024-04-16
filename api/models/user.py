@@ -4,6 +4,7 @@ from typing import Optional
 
 from db import db_conn
 from models.user_type import UserType
+from models.wallet import Wallet
 
 
 @dataclass
@@ -15,9 +16,10 @@ class User:
     phone: str
     bio: str
     user_type: UserType
+    wallet: Optional[Wallet] = None
 
     @staticmethod
-    def fetch(**kvargs) -> Optional[User]:
+    def fetch(with_wallet: bool = False, **kvargs) -> Optional[User]:
         key, value = list(kvargs.items())[0]
         with db_conn() as db:
             with db.cursor() as cur:
@@ -37,5 +39,8 @@ class User:
                 res = cur.fetchone()
         if res is None:
             return
+        wallet = None
+        if with_wallet:
+            wallet = Wallet.fetch(owner_id=res[0])
         user_type = UserType(*res[-2:])
-        return User(*res[:-2], user_type)
+        return User(*res[:-2], user_type, wallet)

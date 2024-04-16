@@ -12,6 +12,7 @@ from router import routes
 
 from .walkzones import *
 from .walk_requests import *
+from .wallet import *
 
 
 @routes.post('/register')
